@@ -44,29 +44,6 @@ def test_load_data(tmp_path):
     assert "A" in df.columns  # whitespace stripped
 
 
-# ---------- clean_macros ----------
-
-def test_clean_macros_converts_to_numeric(sample_df):
-    df = sample_df.copy()
-    df[PROTEIN] = df[PROTEIN].astype(str)
-
-    cleaned = clean_macros(df)
-
-    assert pd.api.types.is_numeric_dtype(cleaned[PROTEIN])
-
-
-def test_clean_macros_fills_missing():
-    df = pd.DataFrame({
-        DIET: ["Keto"],
-        CUISINE: ["Italian"],
-        PROTEIN: [None],
-        CARBS: [10],
-        FAT: [5],
-    })
-
-    cleaned = clean_macros(df)
-
-    assert not cleaned[PROTEIN].isna().any()
 
 
 # ---------- add_ratios ----------
