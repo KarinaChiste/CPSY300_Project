@@ -7,7 +7,7 @@ on:
     branches: ["main"]
 
 env:
-  IMAGE_NAME: diet-analysis
+  IMAGE_NAME: ${{secrets.DOCKER_USERNAME}}/diet-analysis
 
 jobs:
   test:
