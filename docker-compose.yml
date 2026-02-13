@@ -1,6 +1,0 @@
-on: '3.8'
-services:
-  diet-app:
-    image: diet-analysis
-	    volumes:
-		      - .:/app
