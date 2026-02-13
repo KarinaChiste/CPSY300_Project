@@ -28,6 +28,7 @@ jobs:
 
       - name: Run tests
         run: pytest
+        working-directory: .
         
   build-and-push:
     needs: test
