@@ -60,17 +60,10 @@ jobs:
     
 
     steps:
-      - name: Deploy using SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            docker pull $IMAGE_NAME:latest
-            docker stop my-container || true
-            docker rm my-container || true
+      - name: Deploy in GitHub Actions runner
+        run: |
             docker run -d --name my-container -p 8000:8000 $IMAGE_NAME:latest
-
+            docker ps -a
+            docker logs my-container
 
           
