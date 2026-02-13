@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import pytest
 
-from app.analysis import (
+from app.data_analysis import (
     load_data,
     clean_macros,
     add_ratios,
