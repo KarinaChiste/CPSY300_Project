@@ -7,7 +7,7 @@ on:
     branches: ["main"]
 
 env:
-  IMAGE_NAME: placeholder
+  IMAGE_NAME: diet-analysis
 
 jobs:
   test:
