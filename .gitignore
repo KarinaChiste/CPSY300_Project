@@ -3,3 +3,4 @@
 *.pyc
 charts/
 simulated_nosql/
+venv/
