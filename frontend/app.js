@@ -3,6 +3,9 @@ const API_BASE = "https://cpsy300groupsix-azcfb9ejcghncxc5.canadacentral-01.azur
 // Active chart instances (so we can destroy before re-rendering)
 const charts = {};
 
+// Track which chart types have been opened by the user
+const renderedCharts = new Set();
+
 // Current pagination state
 let currentPage = 1;
 let totalPages  = 1;
@@ -13,6 +16,21 @@ async function init() {
     await populateDietDropdown();
     await loadRecipes(1);
     await loadSecurityStatus();
+    checkOAuthReturn();
+}
+
+function checkOAuthReturn() {
+    const params   = new URLSearchParams(window.location.search);
+    const provider = params.get("login");
+    const user     = params.get("user");
+    if (!provider || !user) return;
+
+    const msgEl = document.getElementById("oauth-message");
+    msgEl.textContent = `Logged in with ${provider === "google" ? "Google" : "GitHub"} as ${user}`;
+    msgEl.className   = "green";
+
+    // Clean the URL without reloading
+    window.history.replaceState({}, "", window.location.pathname);
 }
 
 // --- Dropdown ---
@@ -32,8 +50,10 @@ async function populateDietDropdown() {
 
 // --- Charts ---
 
-async function loadChart(type) {
-    const res  = await fetch(`${API_BASE}/api/chart/${type}`);
+async function loadChart(type, diet = "") {
+    renderedCharts.add(type);
+    const params = diet ? `?diet=${encodeURIComponent(diet)}` : "";
+    const res  = await fetch(`${API_BASE}/api/chart/${type}${params}`);
     const data = await res.json();
 
     if (charts[type]) {
@@ -129,9 +149,18 @@ async function applyFilter() {
          Fat: ${row["Fat(g)"].toFixed(1)}g`
     ).join("<br>");
 
-    // Also reload recipes with the diet filter applied
+    // Reload recipes with the diet filter applied
     currentPage = 1;
     await loadRecipes(1, diet);
+
+    // Reload any charts that have already been opened
+    const chartPromises = [];
+    for (const type of ["bar", "scatter", "heatmap"]) {
+        if (renderedCharts.has(type)) {
+            chartPromises.push(loadChart(type, diet));
+        }
+    }
+    await Promise.all(chartPromises);
 }
 
 // --- API Buttons ---
@@ -159,9 +188,38 @@ async function apiGetClusters() {
 }
 
 function showOutput(data) {
-    const out   = document.getElementById("api-output");
+    const out = document.getElementById("api-output");
     out.style.display = "block";
-    out.textContent   = JSON.stringify(data, null, 2);
+
+    // Recipes response: {page, pages, total, recipes: [...]}
+    if (data && Array.isArray(data.recipes)) {
+        out.innerHTML = `
+            <p style="margin:0 0 8px"><strong>Page ${data.page} of ${data.pages}</strong> — ${data.total} total recipes</p>
+            ${buildTable(data.recipes)}`;
+        return;
+    }
+
+    // Plain array (insights, clusters)
+    if (Array.isArray(data)) {
+        out.innerHTML = buildTable(data);
+        return;
+    }
+
+    // Fallback
+    out.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+}
+
+function buildTable(rows) {
+    if (!rows.length) return "<p>No results.</p>";
+    const headers = Object.keys(rows[0]);
+    const ths = headers.map(h => `<th>${h}</th>`).join("");
+    const trs = rows.map(row =>
+        `<tr>${headers.map(h => {
+            const v = row[h];
+            return `<td>${typeof v === "number" ? v.toFixed(2) : v ?? "—"}</td>`;
+        }).join("")}</tr>`
+    ).join("");
+    return `<table><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`;
 }
 
 // --- Pagination ---
@@ -252,7 +310,6 @@ async function loadSecurityStatus() {
     const encEl  = document.getElementById("sec-encryption");
     const accEl  = document.getElementById("sec-access-control");
     const comEl  = document.getElementById("sec-compliance");
-    const detEl  = document.getElementById("sec-details");
 
     encEl.textContent = "Loading…";
     accEl.textContent = "Loading…";
@@ -271,8 +328,6 @@ async function loadSecurityStatus() {
         comEl.textContent = data.compliance;
         comEl.className   = data.compliance === "GDPR Compliant" ? "green" : "red";
 
-        detEl.style.display = "block";
-        detEl.textContent   = JSON.stringify(data.details, null, 2);
     } catch (err) {
         encEl.textContent = accEl.textContent = comEl.textContent = "Error";
         encEl.className   = accEl.className   = comEl.className   = "red";

@@ -6,6 +6,7 @@ import math
 
 import pandas as pd
 import pyotp
+import requests as http_requests
 from azure.storage.blob import BlobServiceClient
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, redirect
@@ -108,8 +109,9 @@ def clusters():
 
 @app.route("/api/chart/bar", methods=["GET"])
 def chart_bar():
-    """Bar chart data: average protein per diet type."""
+    """Bar chart data: average macros per diet type, optionally filtered."""
     df = get_df()
+    df = filter_by_diet(df, request.args.get("diet"))
     avg = df.groupby(DIET)[[PROTEIN, CARBS, FAT]].mean().round(2)
     return jsonify({
         "labels": avg.index.tolist(),
@@ -121,8 +123,9 @@ def chart_bar():
 
 @app.route("/api/chart/scatter", methods=["GET"])
 def chart_scatter():
-    """Scatter plot data: top 5 protein recipes per diet type."""
+    """Scatter plot data: top 5 protein recipes, optionally filtered by diet."""
     df = get_df()
+    df = filter_by_diet(df, request.args.get("diet"))
     top = df.sort_values(PROTEIN, ascending=False).groupby(DIET).head(5)
     return jsonify({
         "points": top[[DIET, RECIPE, PROTEIN, CARBS]].to_dict(orient="records")
@@ -131,8 +134,9 @@ def chart_scatter():
 
 @app.route("/api/chart/heatmap", methods=["GET"])
 def chart_heatmap():
-    """Heatmap data: avg macros matrix per diet type."""
+    """Heatmap data: avg macros matrix per diet type, optionally filtered."""
     df = get_df()
+    df = filter_by_diet(df, request.args.get("diet"))
     avg = df.groupby(DIET)[[PROTEIN, CARBS, FAT]].mean().round(2)
     return jsonify({
         "diets":   avg.index.tolist(),
@@ -198,13 +202,10 @@ def security_status():
 @app.route("/api/auth/google", methods=["GET"])
 def auth_google():
     """Redirect to Google OAuth 2.0 authorization endpoint."""
-    client_id = os.getenv("GOOGLE_CLIENT_ID")
+    client_id    = os.getenv("GOOGLE_CLIENT_ID")
     redirect_uri = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:5000/api/auth/google/callback")
     if not client_id:
-        return jsonify({
-            "status": "demo",
-            "message": "Google OAuth not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in environment."
-        }), 200
+        return jsonify({"status": "demo", "message": "Google OAuth not configured."}), 200
     auth_url = (
         "https://accounts.google.com/o/oauth2/v2/auth"
         f"?client_id={client_id}"
@@ -215,16 +216,39 @@ def auth_google():
     return redirect(auth_url)
 
 
+@app.route("/api/auth/google/callback", methods=["GET"])
+def auth_google_callback():
+    """Exchange Google auth code for token, then redirect to frontend."""
+    code = request.args.get("code")
+    if not code:
+        return jsonify({"status": "error", "message": "No code received from Google."}), 400
+
+    token_res = http_requests.post("https://oauth2.googleapis.com/token", data={
+        "code":          code,
+        "client_id":     os.getenv("GOOGLE_CLIENT_ID"),
+        "client_secret": os.getenv("GOOGLE_CLIENT_SECRET"),
+        "redirect_uri":  os.getenv("GOOGLE_REDIRECT_URI"),
+        "grant_type":    "authorization_code",
+    })
+    access_token = token_res.json().get("access_token")
+
+    user_res = http_requests.get(
+        "https://www.googleapis.com/oauth2/v2/userinfo",
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+    email = user_res.json().get("email", "unknown")
+
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost")
+    return redirect(f"{frontend_url}?login=google&user={email}")
+
+
 @app.route("/api/auth/github", methods=["GET"])
 def auth_github():
     """Redirect to GitHub OAuth authorization endpoint."""
-    client_id = os.getenv("GITHUB_CLIENT_ID")
+    client_id    = os.getenv("GITHUB_CLIENT_ID")
     redirect_uri = os.getenv("GITHUB_REDIRECT_URI", "http://localhost:5000/api/auth/github/callback")
     if not client_id:
-        return jsonify({
-            "status": "demo",
-            "message": "GitHub OAuth not configured. Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in environment."
-        }), 200
+        return jsonify({"status": "demo", "message": "GitHub OAuth not configured."}), 200
     auth_url = (
         "https://github.com/login/oauth/authorize"
         f"?client_id={client_id}"
@@ -232,6 +256,34 @@ def auth_github():
         "&scope=user:email"
     )
     return redirect(auth_url)
+
+
+@app.route("/api/auth/github/callback", methods=["GET"])
+def auth_github_callback():
+    """Exchange GitHub auth code for token, then redirect to frontend."""
+    code = request.args.get("code")
+    if not code:
+        return jsonify({"status": "error", "message": "No code received from GitHub."}), 400
+
+    token_res = http_requests.post(
+        "https://github.com/login/oauth/access_token",
+        data={
+            "code":          code,
+            "client_id":     os.getenv("GITHUB_CLIENT_ID"),
+            "client_secret": os.getenv("GITHUB_CLIENT_SECRET"),
+        },
+        headers={"Accept": "application/json"}
+    )
+    access_token = token_res.json().get("access_token")
+
+    user_res = http_requests.get(
+        "https://api.github.com/user",
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+    username = user_res.json().get("login", "unknown")
+
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost")
+    return redirect(f"{frontend_url}?login=github&user={username}")
 
 
 # --- Two-Factor Authentication ---

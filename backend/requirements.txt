@@ -8,3 +8,4 @@ flask-cors
 azure-storage-blob
 python-dotenv
 pyotp
+requests
