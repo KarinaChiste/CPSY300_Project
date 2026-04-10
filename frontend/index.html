@@ -83,12 +83,14 @@
         <section class="section oauth-2fa">
             <h2>OAuth & 2FA Integration</h2>
             <div class="login-buttons">
-                <button class="btn google-btn">Login with Google</button>
-                <button class="btn github-btn">Login with GitHub</button>
+                <button class="btn google-btn" onclick="loginWithGoogle()">Login with Google</button>
+                <button class="btn github-btn" onclick="loginWithGitHub()">Login with GitHub</button>
             </div>
             <div class="two-factor">
                 <label for="twofa">Enter 2FA Code</label>
                 <input type="text" id="twofa" placeholder="Enter your 2FA code">
+                <button class="btn btn-blue" onclick="verify2FA()" style="margin-top:8px;">Verify</button>
+                <span id="twofa-message" style="margin-left:10px;font-weight:600;"></span>
             </div>
         </section>
 

@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000";
+const API_BASE = "https://cpsy300groupsix-azcfb9ejcghncxc5.canadacentral-01.azurewebsites.net";
 
 // Active chart instances (so we can destroy before re-rendering)
 const charts = {};
@@ -206,7 +206,44 @@ async function changePage(delta) {
 }
 
 async function triggerManualCleanup() {
-    const res = await fetch(`${API_BASE}/api/cleanup`);
+    const res  = await fetch(`${API_BASE}/api/cleanup`);
+    const data = await res.json();
+    alert(data.message);
+}
+
+// --- OAuth ---
+
+function loginWithGoogle() {
+    window.location.href = `${API_BASE}/api/auth/google`;
+}
+
+function loginWithGitHub() {
+    window.location.href = `${API_BASE}/api/auth/github`;
+}
+
+// --- 2FA ---
+
+async function verify2FA() {
+    const code  = document.getElementById("twofa").value.trim();
+    const msgEl = document.getElementById("twofa-message");
+    if (!code) {
+        msgEl.textContent = "Please enter your 2FA code.";
+        msgEl.className   = "red";
+        return;
+    }
+    try {
+        const res  = await fetch(`${API_BASE}/api/auth/verify-2fa`, {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify({ code })
+        });
+        const data = await res.json();
+        msgEl.textContent = data.message;
+        msgEl.className   = data.status === "success" ? "green" : "red";
+    } catch (err) {
+        msgEl.textContent = "Error contacting server.";
+        msgEl.className   = "red";
+    }
 }
 
 // --- Security Status ---
