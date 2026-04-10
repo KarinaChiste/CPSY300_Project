@@ -12,6 +12,7 @@ let totalPages  = 1;
 async function init() {
     await populateDietDropdown();
     await loadRecipes(1);
+    await loadSecurityStatus();
 }
 
 // --- Dropdown ---
@@ -206,6 +207,39 @@ async function changePage(delta) {
 
 async function triggerManualCleanup() {
     const res = await fetch(`${API_BASE}/api/cleanup`);
+}
+
+// --- Security Status ---
+
+async function loadSecurityStatus() {
+    const encEl  = document.getElementById("sec-encryption");
+    const accEl  = document.getElementById("sec-access-control");
+    const comEl  = document.getElementById("sec-compliance");
+    const detEl  = document.getElementById("sec-details");
+
+    encEl.textContent = "Loading…";
+    accEl.textContent = "Loading…";
+    comEl.textContent = "Loading…";
+
+    try {
+        const res  = await fetch(`${API_BASE}/api/security-status`);
+        const data = await res.json();
+
+        encEl.textContent = data.encryption;
+        encEl.className   = data.encryption === "Enabled" ? "green" : "red";
+
+        accEl.textContent = data.access_control;
+        accEl.className   = data.access_control === "Secure" ? "green" : "red";
+
+        comEl.textContent = data.compliance;
+        comEl.className   = data.compliance === "GDPR Compliant" ? "green" : "red";
+
+        detEl.style.display = "block";
+        detEl.textContent   = JSON.stringify(data.details, null, 2);
+    } catch (err) {
+        encEl.textContent = accEl.textContent = comEl.textContent = "Error";
+        encEl.className   = accEl.className   = comEl.className   = "red";
+    }
 }
 
 // --- Start ---
