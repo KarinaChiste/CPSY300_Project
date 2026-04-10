@@ -227,6 +227,11 @@ footer {
     font-weight: bold;
 }
 
+.red {
+    color: red;
+    font-weight: bold;
+}
+
 /* OAuth & 2FA Integration Section */
 .oauth-2fa {
     background: #fff;
