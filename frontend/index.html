@@ -15,6 +15,7 @@
 
     <main>
 
+
         <!-- Chart Cards -->
         <section>
             <h2>Explore Nutritional Insights</h2>
@@ -54,7 +55,7 @@
             <div id="filter-results"></div>
         </section>
 
-        <!-- API Buttons -->
+        <!-- API Data Interaction Section -->
         <section>
             <h2>API Data Interaction</h2>
             <div class="api-buttons">
@@ -63,6 +64,38 @@
                 <button class="btn-purple" onclick="apiGetClusters()">Get Clusters</button>
             </div>
             <pre id="api-output"></pre>
+        </section>
+
+        
+        <!-- Security & Compliance Section -->
+        <section class="section security-compliance">
+            <h2>Security & Compliance</h2>
+            <div class="status">
+                <p><strong>Security Status</strong></p>
+                <p>Encryption: <span class="green"></span></p>
+                <p>Access Control: <span class="green"></span></p>
+                <p>Compliance: <span class="green"></span></p>
+            </div>
+        </section>
+
+        <!-- OAuth & 2FA Integration Section -->
+        <section class="section oauth-2fa">
+            <h2>OAuth & 2FA Integration</h2>
+            <div class="login-buttons">
+                <button class="btn google-btn">Login with Google</button>
+                <button class="btn github-btn">Login with GitHub</button>
+            </div>
+            <div class="two-factor">
+                <label for="twofa">Enter 2FA Code</label>
+                <input type="text" id="twofa" placeholder="Enter your 2FA code">
+            </div>
+        </section>
+
+        <!-- Cloud Resource Cleanup Section -->
+        <section class="section cloud-cleanup">
+            <h2>Cloud Resource Cleanup</h2>
+            <p>Ensure that cloud resources are efficiently managed and cleaned up post-deployment.</p>
+            <button class="btn cleanup-btn">Clean Up Resources</button>
         </section>
 
         <!-- Pagination -->

@@ -31,6 +31,7 @@ main {
     gap: 40px;
 }
 
+/* Section headers */
 section h2 {
     font-size: 1.25rem;
     margin-bottom: 16px;
@@ -206,4 +207,89 @@ footer {
     padding: 16px;
     font-size: 0.85rem;
     margin-top: 40px;
+}
+
+/* Security & Compliance Section */
+.security-compliance {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.security-compliance .status p {
+    font-size: 1rem;
+    margin: 6px 0;
+}
+
+.green {
+    color: green;
+    font-weight: bold;
+}
+
+/* OAuth & 2FA Integration Section */
+.oauth-2fa {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.oauth-2fa .login-buttons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.oauth-2fa .login-buttons button {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    border-radius: 5px;
+    cursor: pointer;
+    border: none;
+}
+
+.google-btn {
+    background-color: #4285F4;
+    color: white;
+}
+
+.github-btn {
+    background-color: #24292F;
+    color: white;
+}
+
+.google-btn:hover, .github-btn:hover {
+    opacity: 0.8;
+}
+
+.oauth-2fa input {
+    padding: 10px;
+    font-size: 16px;
+    width: 250px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-top: 10px;
+}
+
+/* Cloud Resource Cleanup Section */
+.cloud-cleanup {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cleanup-btn {
+    background-color: #e63946;
+    color: white;
+    padding: 12px 25px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.cleanup-btn:hover {
+    opacity: 0.8;
 }
