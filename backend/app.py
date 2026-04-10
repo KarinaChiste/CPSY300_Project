@@ -154,6 +154,12 @@ def diet_types():
     types = sorted(df[DIET].unique().tolist())
     return jsonify(types)
 
+@app.route("/api/cleanup", methods=["GET"])
+def manual_cleanup():
+    global _df_cache
+    if _df_cache is not None:
+        _df_cache = None
+    return jsonify({"status": "success", "message": message}), 200
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

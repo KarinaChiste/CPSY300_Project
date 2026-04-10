@@ -204,5 +204,9 @@ async function changePage(delta) {
     await loadRecipes(next, diet);
 }
 
+async function triggerManualCleanup() {
+    const res = await fetch(`${API_BASE}/api/cleanup`);
+}
+
 // --- Start ---
 init();
